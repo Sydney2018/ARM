@@ -1,0 +1,125 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "User name for the Virtual Machine."
+            }
+        },
+        "keyvaultname": {
+            "type": "string",
+            "defaultValue": "chriskey",
+            "metadata": {
+                "description": "Key Vault Name"
+            }
+        },
+        "secretname": {
+            "type": "string",
+            "defaultValue": "ubuntuDefaultPassword",
+            "metadata": {
+                "description": "Secret Name"
+            }
+        },
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the virtual machine"
+            },
+            "defaultValue": "myUbuntuVm"
+        },
+        "dnsLabelPrefix": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
+            }
+        },
+        "ubuntuOSVersion": {
+            "type": "string",
+            "defaultValue": "16.04-LTS",
+            "allowedValues": [
+                "14.04-LTS",
+                "16.04-LTS",
+                "17.04",
+                "17.10"
+            ],
+            "metadata": {
+                "description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version."
+            }
+        },
+        "numberOfDataDisks": {
+            "type": "int",
+            "defaultValue": 1,
+            "maxValue": 2,
+            "metadata": {
+                "description": "Number of data disks for the virtual machine"
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the virtual network"
+            }
+        },
+        "vnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "CIDR address space for the virtual network"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "Subnet",
+            "metadata": {
+                "description": "Name for the subnet - defaults to Subnet"
+            }
+        },
+        "subnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "CIDR address space for the subnet"
+            }
+        }
+    },
+    "resources": [
+        {
+            "name": "VM",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
+            "tags": {
+                "displayName": "VM"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('_artifactsLocation'), '/NestedTemplates/${NestedTemplate.json}', parameters('_artifactsLocationSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "[resourceId('keyvaults', 'Microsoft.KeyVault/vaults', parameters('keyvaultname') )]"
+                            },
+                            "secretName": "[parameters('secretname')]"
+                        }
+                    },
+                    "vnetName": {
+                        "value": "[parameters('vnetName')]"
+                    },
+                    "subnetName": {
+                        "value": "[parameters('subnetName')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
